@@ -22,7 +22,7 @@ pub fn generate_preshared_key() -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use base64::{Engine as _, engine::general_purpose::STANDARD};
+    use base64::engine::general_purpose::STANDARD;
 
     #[test]
     fn test_keypair_format() {

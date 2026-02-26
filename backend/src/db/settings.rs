@@ -1,5 +1,6 @@
 use sqlx::{Pool, Sqlite, Row};
 
+#[allow(dead_code)]
 pub async fn get(pool: &Pool<Sqlite>, key: &str) -> anyhow::Result<Option<String>> {
     let row = sqlx::query("SELECT value FROM config WHERE key = ?")
         .bind(key)
@@ -19,6 +20,7 @@ pub async fn set(pool: &Pool<Sqlite>, key: &str, value: &str) -> anyhow::Result<
     Ok(())
 }
 
+#[allow(dead_code)]
 pub async fn get_all(pool: &Pool<Sqlite>) -> anyhow::Result<Vec<(String, String)>> {
     let rows = sqlx::query("SELECT key, value FROM config")
         .fetch_all(pool)

@@ -6,7 +6,7 @@ use axum::{
 };
 use chrono::Utc;
 use ipnet::Ipv4Net;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::net::Ipv4Addr;
 use uuid::Uuid;
 

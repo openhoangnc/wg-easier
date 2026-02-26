@@ -7,7 +7,6 @@ use tower_http::services::{ServeDir, ServeFile};
 use metrics_exporter_prometheus::PrometheusHandle;
 
 use crate::AppState;
-use crate::api::session::SessionStore;
 
 pub mod auth;
 pub mod session;
