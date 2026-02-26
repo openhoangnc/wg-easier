@@ -1,0 +1,56 @@
+{
+  "login": {
+    "username": "Username",
+    "password": "Password",
+    "totpCode": "2FA Code",
+    "optional": "optional",
+    "submit": "Sign In",
+    "loggingIn": "Signing in...",
+    "error": "Invalid credentials"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "settings": "Settings",
+    "logout": "Sign Out"
+  },
+  "dashboard": {
+    "clients": "Clients",
+    "noClients": "No clients yet. Add one above.",
+    "newClientName": "Client name",
+    "addClient": "Add Client",
+    "creating": "Creating..."
+  },
+  "client": {
+    "name": "Name",
+    "ip": "IP Address",
+    "status": "Status",
+    "lastHandshake": "Last Handshake",
+    "transfer": "Transfer",
+    "actions": "Actions",
+    "online": "Online",
+    "offline": "Offline",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "enable": "Enable",
+    "disable": "Disable",
+    "delete": "Delete",
+    "details": "Details",
+    "confirmDelete": "Delete this client?",
+    "downloadConf": "Download .conf",
+    "publicKey": "Public Key"
+  },
+  "settings": {
+    "title": "Settings",
+    "interfaceInfo": "Interface",
+    "publicKey": "Public Key",
+    "listenPort": "Listen Port",
+    "subnet": "Subnet",
+    "updateInterface": "Update Interface"
+  },
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "saved": "Saved!",
+    "close": "Close"
+  }
+}

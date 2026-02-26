@@ -1,0 +1,56 @@
+{
+  "login": {
+    "username": "Benutzername",
+    "password": "Passwort",
+    "totpCode": "2FA-Code",
+    "optional": "optional",
+    "submit": "Anmelden",
+    "loggingIn": "Anmelden...",
+    "error": "Ungültige Anmeldedaten"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "settings": "Einstellungen",
+    "logout": "Abmelden"
+  },
+  "dashboard": {
+    "clients": "Clients",
+    "noClients": "Noch keine Clients. Füge einen hinzu.",
+    "newClientName": "Client-Name",
+    "addClient": "Client hinzufügen",
+    "creating": "Erstelle..."
+  },
+  "client": {
+    "name": "Name",
+    "ip": "IP-Adresse",
+    "status": "Status",
+    "lastHandshake": "Letzter Handshake",
+    "transfer": "Übertragung",
+    "actions": "Aktionen",
+    "online": "Online",
+    "offline": "Offline",
+    "enabled": "Aktiviert",
+    "disabled": "Deaktiviert",
+    "enable": "Aktivieren",
+    "disable": "Deaktivieren",
+    "delete": "Löschen",
+    "details": "Details",
+    "confirmDelete": "Diesen Client löschen?",
+    "downloadConf": ".conf herunterladen",
+    "publicKey": "Öffentlicher Schlüssel"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "interfaceInfo": "Interface",
+    "publicKey": "Öffentlicher Schlüssel",
+    "listenPort": "Lauschport",
+    "subnet": "Subnetz",
+    "updateInterface": "Interface aktualisieren"
+  },
+  "common": {
+    "loading": "Laden...",
+    "save": "Speichern",
+    "saved": "Gespeichert!",
+    "close": "Schließen"
+  }
+}

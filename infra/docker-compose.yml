@@ -1,0 +1,19 @@
+services:
+  wg-easy-rs:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+    image: wg-easy-rs:dev
+    container_name: wg-easy-rs
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    volumes:
+      - ./data:/etc/wireguard
+    environment:
+      - WG_HOST=localhost
+      - INSECURE=true
+    ports:
+      - "51820:51820/udp"
+      - "51821:51821/tcp"
+    restart: unless-stopped
