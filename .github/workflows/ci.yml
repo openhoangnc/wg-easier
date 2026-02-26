@@ -47,14 +47,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build Docker image
+      - name: Build Docker image (all platforms)
         uses: docker/build-push-action@v6
         with:
           context: .
           file: infra/Dockerfile
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: false
           cache-from: type=gha
           cache-to: type=gha,mode=min
