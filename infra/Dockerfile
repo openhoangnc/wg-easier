@@ -1,5 +1,5 @@
 # ─── Stage 1: Static Rust binary ───────────────────────────────────────────
-FROM rust:1.85-alpine AS rust-builder
+FROM rust:1.93-alpine AS rust-builder
 RUN apk add --no-cache musl-dev perl make pkgconfig
 WORKDIR /app
 COPY backend/ .
