@@ -84,7 +84,7 @@ impl AppConfig {
         let password_hash = std::env::var("PASSWORD_HASH").ok();
 
         if !insecure && password_hash.is_none() {
-            bail!("Either set PASSWORD_HASH or enable INSECURE=true");
+            bail!("PASSWORD_HASH is required when INSECURE=false (set a bcrypt hash or use INSECURE=true for development only)");
         }
 
         let db_path = std::env::var("WG_DB_PATH")

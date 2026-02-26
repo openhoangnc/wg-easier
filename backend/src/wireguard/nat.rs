@@ -5,6 +5,10 @@ const TABLE_NAME: &str = "wg_easy_nat";
 const CHAIN_NAME: &str = "postrouting";
 
 /// Set up NAT MASQUERADE using nftables for the WireGuard subnet.
+///
+/// # Arguments
+/// * `wg_cidr` - The WireGuard subnet in CIDR notation (e.g. `"10.8.0.0/24"`)
+/// * `outbound_iface` - The physical network interface used for outbound traffic (e.g. `"eth0"`)
 pub fn setup_nat(wg_cidr: &str, outbound_iface: &str) -> anyhow::Result<()> {
     use rustables::{
         Batch, Chain, ChainPolicy, ChainType, Hook, HookClass, MsgType, ProtocolFamily, Rule, Table,

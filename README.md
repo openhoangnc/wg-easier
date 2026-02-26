@@ -34,6 +34,7 @@ See `docs/` for full documentation.
 | `PASSWORD_HASH` | — | bcrypt hash of the admin password |
 | `INSECURE` | `false` | Disable authentication (dev only) |
 | `WG_DB_PATH` | `/etc/wireguard/wg-easy.db` | SQLite database path |
+| `WG_OUTBOUND_IFACE` | `eth0` | Physical network interface for NAT outbound traffic |
 
 ## Architecture
 
