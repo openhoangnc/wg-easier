@@ -25,7 +25,7 @@ database schema and environment variables.
      -e PASSWORD_HASH='$2b$12$...' \
      -p 51820:51820/udp \
      -p 51821:51821/tcp \
-     ghcr.io/your-org/wg-easy-rs:latest
+     ghcr.io/docker pull ghcr.io/openhoangnc/wg-easier:latest
    ```
 
 ## Differences

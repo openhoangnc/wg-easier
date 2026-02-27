@@ -15,7 +15,7 @@ docker run -d \
   -e PASSWORD_HASH='...' \
   -p 51820:51820/udp \
   -p 51821:51821/tcp \
-  your-org/wg-easy-rs:latest
+  docker pull ghcr.io/openhoangnc/wg-easier:latest
 ```
 
 See `docs/` for full documentation.
