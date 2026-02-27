@@ -36,8 +36,8 @@ RUN cargo install cargo-zigbuild --locked
 
 # Map Docker's TARGETPLATFORM to the corresponding Rust musl target triple
 RUN case "${TARGETPLATFORM}" in \
-      "linux/amd64")  echo "x86_64-unknown-linux-musl"  ;; \
-      "linux/arm64")  echo "aarch64-unknown-linux-musl" ;; \
+      "linux/amd64")  echo "x86_64-unknown-linux-musl"   ;; \
+      "linux/arm64")  echo "aarch64-unknown-linux-musl"  ;; \
       *) echo "Unsupported platform: ${TARGETPLATFORM}" >&2 && exit 1 ;; \
     esac > /rust-target.txt
 
