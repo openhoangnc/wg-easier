@@ -1,0 +1,12 @@
+[Interface]
+PrivateKey = {{ private_key }}
+Address = {{ ipv4 }}/32{% if ipv6 %}, {{ ipv6 }}/128{% endif %}
+
+DNS = {{ dns }}
+
+[Peer]
+PublicKey = {{ server_public_key }}
+PresharedKey = {{ preshared_key }}
+Endpoint = {{ server_host }}:{{ server_port }}
+AllowedIPs = {{ allowed_ips }}
+PersistentKeepalive = 0

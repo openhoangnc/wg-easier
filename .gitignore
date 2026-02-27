@@ -1,3 +1,24 @@
+# Rust
+/backend/target/
+**/*.rs.bk
+
+# Node / React
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# SQLite
+*.db
+*.db-shm
+*.db-wal
+
+# Environment
+.env
+.env.local
+
+# Docker build cache
+.dockerignore
+
+# OS
 .DS_Store
-*.swp
-node_modules
+Thumbs.db
