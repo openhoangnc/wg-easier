@@ -9,8 +9,12 @@ ARG TARGETPLATFORM
 #   musl-dev       – musl libc headers (needed for static musl builds)
 #   linux-headers  – kernel netfilter headers required by rustables/bindgen
 #   clang-dev      – provides libclang.so, required by bindgen at build time
+#   clang-static   – provides static libclang for cross-compilation
 #   zig            – cross-linker used by cargo-zigbuild
-RUN apk add --no-cache musl-dev linux-headers clang-dev perl make pkgconf zig
+RUN apk add --no-cache musl-dev linux-headers clang-dev clang-static perl make pkgconf zig
+
+# Set LIBCLANG_PATH to point to static libclang for bindgen cross-compilation
+ENV LIBCLANG_PATH=/usr/lib
 
 # Install cargo-zigbuild (cross-compilation wrapper using Zig)
 RUN cargo install cargo-zigbuild --locked
