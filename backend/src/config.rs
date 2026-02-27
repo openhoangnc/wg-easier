@@ -25,8 +25,7 @@ pub struct AppConfig {
 
 impl AppConfig {
     pub fn from_env() -> anyhow::Result<Self> {
-        let wg_host = std::env::var("WG_HOST")
-            .context("WG_HOST environment variable is required")?;
+        let wg_host = std::env::var("WG_HOST").unwrap_or_else(|_| "0.0.0.0".to_string());
 
         if wg_host.is_empty() {
             bail!("WG_HOST must not be empty");
@@ -42,14 +41,14 @@ impl AppConfig {
             .map(|v| v.parse().context("WG_MTU must be a valid number"))
             .transpose()?;
 
-        let wg_default_address = std::env::var("WG_DEFAULT_ADDRESS")
-            .unwrap_or_else(|_| "10.8.0.x".to_string());
+        let wg_default_address =
+            std::env::var("WG_DEFAULT_ADDRESS").unwrap_or_else(|_| "10.8.0.x".to_string());
 
-        let wg_default_dns = std::env::var("WG_DEFAULT_DNS")
-            .unwrap_or_else(|_| "1.1.1.1".to_string());
+        let wg_default_dns =
+            std::env::var("WG_DEFAULT_DNS").unwrap_or_else(|_| "1.1.1.1".to_string());
 
-        let wg_allowed_ips = std::env::var("WG_ALLOWED_IPS")
-            .unwrap_or_else(|_| "0.0.0.0/0".to_string());
+        let wg_allowed_ips =
+            std::env::var("WG_ALLOWED_IPS").unwrap_or_else(|_| "0.0.0.0/0".to_string());
 
         // Shell hooks are not supported in scratch image — log warning and ignore
         let wg_pre_up = std::env::var("WG_PRE_UP").ok();
@@ -87,11 +86,11 @@ impl AppConfig {
             bail!("PASSWORD_HASH is required when INSECURE=false (set a bcrypt hash or use INSECURE=true for development only)");
         }
 
-        let db_path = std::env::var("WG_DB_PATH")
-            .unwrap_or_else(|_| "/etc/wireguard/wg-easy.db".to_string());
+        let db_path =
+            std::env::var("WG_DB_PATH").unwrap_or_else(|_| "/etc/wireguard/wg-easy.db".to_string());
 
-        let static_path = std::env::var("WG_STATIC_PATH")
-            .unwrap_or_else(|_| "/app/static".to_string());
+        let static_path =
+            std::env::var("WG_STATIC_PATH").unwrap_or_else(|_| "/app/static".to_string());
 
         Ok(Self {
             wg_host,
