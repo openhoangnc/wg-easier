@@ -10,8 +10,8 @@ use serde::Deserialize;
 use std::net::Ipv4Addr;
 use uuid::Uuid;
 
-use crate::{AppState, error::AppError, models::client::Client};
 use crate::wireguard::{keys, peers};
+use crate::{error::AppError, models::client::Client, AppState};
 
 #[derive(Deserialize)]
 pub struct CreateClientRequest {
@@ -26,7 +26,9 @@ pub struct UpdateClientRequest {
 }
 
 pub async fn list(State(state): State<AppState>) -> Result<impl IntoResponse, AppError> {
-    let clients = crate::db::clients::list(&state.db).await.map_err(AppError::Internal)?;
+    let clients = crate::db::clients::list(&state.db)
+        .await
+        .map_err(AppError::Internal)?;
     Ok(Json(clients))
 }
 
@@ -38,11 +40,17 @@ pub async fn create(
     let preshared_key = keys::generate_preshared_key();
 
     // Determine next available IP
-    let used_ips = crate::db::clients::get_used_ips(&state.db).await.map_err(AppError::Internal)?;
-    let iface = crate::db::interfaces::get(&state.db).await.map_err(AppError::Internal)?
+    let used_ips = crate::db::clients::get_used_ips(&state.db)
+        .await
+        .map_err(AppError::Internal)?;
+    let iface = crate::db::interfaces::get(&state.db)
+        .await
+        .map_err(AppError::Internal)?
         .ok_or_else(|| AppError::Internal(anyhow::anyhow!("No interface configured")))?;
 
-    let network: Ipv4Net = iface.ipv4_cidr.parse()
+    let network: Ipv4Net = iface
+        .ipv4_cidr
+        .parse()
         .map_err(|e| AppError::Internal(anyhow::anyhow!("Invalid CIDR: {}", e)))?;
 
     let ip = allocate_ip(&network, &used_ips)
@@ -62,7 +70,9 @@ pub async fn create(
         one_time_link: None,
     };
 
-    crate::db::clients::create(&state.db, &client).await.map_err(AppError::Internal)?;
+    crate::db::clients::create(&state.db, &client)
+        .await
+        .map_err(AppError::Internal)?;
 
     // Add peer to kernel
     peers::add_peer(
@@ -70,7 +80,8 @@ pub async fn create(
         &public_key,
         &preshared_key,
         &[&format!("{}/32", ip)],
-    ).map_err(AppError::Internal)?;
+    )
+    .map_err(AppError::Internal)?;
 
     Ok((StatusCode::CREATED, Json(client)))
 }
@@ -79,7 +90,9 @@ pub async fn get_one(
     State(state): State<AppState>,
     Path(id): Path<String>,
 ) -> Result<impl IntoResponse, AppError> {
-    let client = crate::db::clients::get(&state.db, &id).await.map_err(AppError::Internal)?
+    let client = crate::db::clients::get(&state.db, &id)
+        .await
+        .map_err(AppError::Internal)?
         .ok_or(AppError::NotFound)?;
     Ok(Json(client))
 }
@@ -89,7 +102,9 @@ pub async fn update(
     Path(id): Path<String>,
     Json(body): Json<UpdateClientRequest>,
 ) -> Result<impl IntoResponse, AppError> {
-    let mut client = crate::db::clients::get(&state.db, &id).await.map_err(AppError::Internal)?
+    let mut client = crate::db::clients::get(&state.db, &id)
+        .await
+        .map_err(AppError::Internal)?
         .ok_or(AppError::NotFound)?;
 
     let name = body.name.unwrap_or(client.name.clone());
@@ -97,13 +112,16 @@ pub async fn update(
     let expires_at = body.expires_at.as_deref().or(client.expires_at.as_deref());
 
     crate::db::clients::update(&state.db, &id, &name, enabled, expires_at)
-        .await.map_err(AppError::Internal)?;
+        .await
+        .map_err(AppError::Internal)?;
 
     client.name = name;
     client.enabled = enabled as i64;
     client.expires_at = body.expires_at.or(client.expires_at);
 
-    let iface = crate::db::interfaces::get(&state.db).await.map_err(AppError::Internal)?
+    let iface = crate::db::interfaces::get(&state.db)
+        .await
+        .map_err(AppError::Internal)?
         .ok_or_else(|| AppError::Internal(anyhow::anyhow!("No interface configured")))?;
 
     if enabled {
@@ -112,7 +130,8 @@ pub async fn update(
             &client.public_key,
             &client.preshared_key,
             &[&format!("{}/32", client.ipv4)],
-        ).map_err(AppError::Internal)?;
+        )
+        .map_err(AppError::Internal)?;
     } else {
         peers::remove_peer(&iface.name, &client.public_key).map_err(AppError::Internal)?;
     }
@@ -124,14 +143,20 @@ pub async fn delete(
     State(state): State<AppState>,
     Path(id): Path<String>,
 ) -> Result<impl IntoResponse, AppError> {
-    let client = crate::db::clients::get(&state.db, &id).await.map_err(AppError::Internal)?
+    let client = crate::db::clients::get(&state.db, &id)
+        .await
+        .map_err(AppError::Internal)?
         .ok_or(AppError::NotFound)?;
 
-    let iface = crate::db::interfaces::get(&state.db).await.map_err(AppError::Internal)?
+    let iface = crate::db::interfaces::get(&state.db)
+        .await
+        .map_err(AppError::Internal)?
         .ok_or_else(|| AppError::Internal(anyhow::anyhow!("No interface configured")))?;
 
     peers::remove_peer(&iface.name, &client.public_key).map_err(AppError::Internal)?;
-    crate::db::clients::delete(&state.db, &id).await.map_err(AppError::Internal)?;
+    crate::db::clients::delete(&state.db, &id)
+        .await
+        .map_err(AppError::Internal)?;
 
     Ok(StatusCode::NO_CONTENT)
 }
@@ -140,18 +165,25 @@ pub async fn enable(
     State(state): State<AppState>,
     Path(id): Path<String>,
 ) -> Result<impl IntoResponse, AppError> {
-    let client = crate::db::clients::get(&state.db, &id).await.map_err(AppError::Internal)?
+    let client = crate::db::clients::get(&state.db, &id)
+        .await
+        .map_err(AppError::Internal)?
         .ok_or(AppError::NotFound)?;
-    crate::db::clients::set_enabled(&state.db, &id, true).await.map_err(AppError::Internal)?;
+    crate::db::clients::set_enabled(&state.db, &id, true)
+        .await
+        .map_err(AppError::Internal)?;
 
-    let iface = crate::db::interfaces::get(&state.db).await.map_err(AppError::Internal)?
+    let iface = crate::db::interfaces::get(&state.db)
+        .await
+        .map_err(AppError::Internal)?
         .ok_or_else(|| AppError::Internal(anyhow::anyhow!("No interface configured")))?;
     peers::add_peer(
         &iface.name,
         &client.public_key,
         &client.preshared_key,
         &[&format!("{}/32", client.ipv4)],
-    ).map_err(AppError::Internal)?;
+    )
+    .map_err(AppError::Internal)?;
 
     Ok(StatusCode::NO_CONTENT)
 }
@@ -160,11 +192,17 @@ pub async fn disable(
     State(state): State<AppState>,
     Path(id): Path<String>,
 ) -> Result<impl IntoResponse, AppError> {
-    let client = crate::db::clients::get(&state.db, &id).await.map_err(AppError::Internal)?
+    let client = crate::db::clients::get(&state.db, &id)
+        .await
+        .map_err(AppError::Internal)?
         .ok_or(AppError::NotFound)?;
-    crate::db::clients::set_enabled(&state.db, &id, false).await.map_err(AppError::Internal)?;
+    crate::db::clients::set_enabled(&state.db, &id, false)
+        .await
+        .map_err(AppError::Internal)?;
 
-    let iface = crate::db::interfaces::get(&state.db).await.map_err(AppError::Internal)?
+    let iface = crate::db::interfaces::get(&state.db)
+        .await
+        .map_err(AppError::Internal)?
         .ok_or_else(|| AppError::Internal(anyhow::anyhow!("No interface configured")))?;
     peers::remove_peer(&iface.name, &client.public_key).map_err(AppError::Internal)?;
 
@@ -179,10 +217,7 @@ pub async fn qrcode(
     let code = qrcode::QrCode::new(conf.as_bytes())
         .map_err(|e| AppError::Internal(anyhow::anyhow!("QR error: {}", e)))?;
     let svg = code.render::<qrcode::render::svg::Color>().build();
-    Ok((
-        [(header::CONTENT_TYPE, "image/svg+xml")],
-        svg,
-    ))
+    Ok(([(header::CONTENT_TYPE, "image/svg+xml")], svg))
 }
 
 pub async fn download_conf(
@@ -193,16 +228,23 @@ pub async fn download_conf(
     Ok((
         [
             (header::CONTENT_TYPE, "application/octet-stream"),
-            (header::CONTENT_DISPOSITION, "attachment; filename=\"wg0-client.conf\""),
+            (
+                header::CONTENT_DISPOSITION,
+                "attachment; filename=\"wg0-client.conf\"",
+            ),
         ],
         conf,
     ))
 }
 
 async fn build_client_conf(state: &AppState, id: &str) -> Result<String, AppError> {
-    let client = crate::db::clients::get(&state.db, id).await.map_err(AppError::Internal)?
+    let client = crate::db::clients::get(&state.db, id)
+        .await
+        .map_err(AppError::Internal)?
         .ok_or(AppError::NotFound)?;
-    let iface = crate::db::interfaces::get(&state.db).await.map_err(AppError::Internal)?
+    let iface = crate::db::interfaces::get(&state.db)
+        .await
+        .map_err(AppError::Internal)?
         .ok_or_else(|| AppError::Internal(anyhow::anyhow!("No interface configured")))?;
 
     // Generate a temporary private key for the conf (in real usage the client already has it)

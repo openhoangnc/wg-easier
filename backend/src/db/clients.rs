@@ -1,5 +1,5 @@
-use sqlx::{Pool, Sqlite, Row};
 use crate::models::client::Client;
+use sqlx::{Pool, Row, Sqlite};
 
 fn row_to_client(r: &sqlx::sqlite::SqliteRow) -> Client {
     Client {
@@ -61,7 +61,13 @@ pub async fn create(pool: &Pool<Sqlite>, client: &Client) -> anyhow::Result<()> 
     Ok(())
 }
 
-pub async fn update(pool: &Pool<Sqlite>, id: &str, name: &str, enabled: bool, expires_at: Option<&str>) -> anyhow::Result<()> {
+pub async fn update(
+    pool: &Pool<Sqlite>,
+    id: &str,
+    name: &str,
+    enabled: bool,
+    expires_at: Option<&str>,
+) -> anyhow::Result<()> {
     sqlx::query("UPDATE clients SET name = ?, enabled = ?, expires_at = ? WHERE id = ?")
         .bind(name)
         .bind(enabled as i64)

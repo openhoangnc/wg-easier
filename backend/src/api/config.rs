@@ -1,6 +1,6 @@
+use crate::{error::AppError, AppState};
 use axum::{extract::State, response::IntoResponse, Json};
 use serde::{Deserialize, Serialize};
-use crate::{AppState, error::AppError};
 
 #[derive(Serialize)]
 pub struct ConfigResponse {
@@ -33,11 +33,13 @@ pub async fn update_config(
 ) -> Result<impl IntoResponse, AppError> {
     if let Some(dns) = &body.wg_default_dns {
         crate::db::settings::set(&state.db, "wg_default_dns", dns)
-            .await.map_err(AppError::Internal)?;
+            .await
+            .map_err(AppError::Internal)?;
     }
     if let Some(ips) = &body.wg_allowed_ips {
         crate::db::settings::set(&state.db, "wg_allowed_ips", ips)
-            .await.map_err(AppError::Internal)?;
+            .await
+            .map_err(AppError::Internal)?;
     }
     Ok(Json(serde_json::json!({ "ok": true })))
 }

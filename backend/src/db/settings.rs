@@ -1,4 +1,4 @@
-use sqlx::{Pool, Sqlite, Row};
+use sqlx::{Pool, Row, Sqlite};
 
 #[allow(dead_code)]
 pub async fn get(pool: &Pool<Sqlite>, key: &str) -> anyhow::Result<Option<String>> {
@@ -25,5 +25,8 @@ pub async fn get_all(pool: &Pool<Sqlite>) -> anyhow::Result<Vec<(String, String)
     let rows = sqlx::query("SELECT key, value FROM config")
         .fetch_all(pool)
         .await?;
-    Ok(rows.iter().map(|r| (r.get("key"), r.get("value"))).collect())
+    Ok(rows
+        .iter()
+        .map(|r| (r.get("key"), r.get("value")))
+        .collect())
 }

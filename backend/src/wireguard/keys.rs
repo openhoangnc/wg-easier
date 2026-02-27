@@ -1,6 +1,6 @@
+use base64::{engine::general_purpose::STANDARD, Engine as _};
 use rand::RngCore;
-use x25519_dalek::{StaticSecret, PublicKey};
-use base64::{Engine as _, engine::general_purpose::STANDARD};
+use x25519_dalek::{PublicKey, StaticSecret};
 
 /// Generate a WireGuard keypair.
 /// Returns `(private_key_base64, public_key_base64)`.

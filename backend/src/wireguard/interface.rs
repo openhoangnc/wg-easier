@@ -86,7 +86,9 @@ pub async fn delete_link(handle: &Handle, name: &str) -> anyhow::Result<()> {
 /// Resolve an interface name to its index.
 pub async fn get_link_index(handle: &Handle, name: &str) -> anyhow::Result<u32> {
     let mut links = handle.link().get().match_name(name.to_string()).execute();
-    if let Some(msg) = links.try_next().await
+    if let Some(msg) = links
+        .try_next()
+        .await
         .map_err(|e| anyhow!("rtnetlink error: {}", e))?
     {
         Ok(msg.header.index)

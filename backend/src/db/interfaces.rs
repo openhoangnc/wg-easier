@@ -1,5 +1,5 @@
-use sqlx::{Pool, Sqlite, Row};
 use crate::models::interface::Interface;
+use sqlx::{Pool, Row, Sqlite};
 
 pub async fn get(pool: &Pool<Sqlite>) -> anyhow::Result<Option<Interface>> {
     let row = sqlx::query(

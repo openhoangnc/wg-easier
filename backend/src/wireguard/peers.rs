@@ -1,9 +1,7 @@
 use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
-use wireguard_control::{
-    Backend, Device, DeviceUpdate, InterfaceName, Key, PeerConfigBuilder,
-};
 use std::str::FromStr;
+use wireguard_control::{Backend, Device, DeviceUpdate, InterfaceName, Key, PeerConfigBuilder};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PeerStats {
@@ -18,10 +16,14 @@ fn iface_name(name: &str) -> anyhow::Result<InterfaceName> {
 }
 
 /// Configure the WireGuard interface with private key and listen port.
-pub fn configure_interface(name: &str, private_key_b64: &str, listen_port: u16) -> anyhow::Result<()> {
+pub fn configure_interface(
+    name: &str,
+    private_key_b64: &str,
+    listen_port: u16,
+) -> anyhow::Result<()> {
     let iface = iface_name(name)?;
-    let key = Key::from_base64(private_key_b64)
-        .map_err(|e| anyhow!("Invalid private key: {}", e))?;
+    let key =
+        Key::from_base64(private_key_b64).map_err(|e| anyhow!("Invalid private key: {}", e))?;
     DeviceUpdate::new()
         .set_private_key(key)
         .set_listen_port(listen_port)
@@ -37,14 +39,15 @@ pub fn add_peer(
     allowed_ips: &[&str],
 ) -> anyhow::Result<()> {
     let iface = iface_name(name)?;
-    let pubkey = Key::from_base64(public_key_b64)
-        .map_err(|e| anyhow!("Invalid public key: {}", e))?;
-    let psk = Key::from_base64(preshared_key_b64)
-        .map_err(|e| anyhow!("Invalid preshared key: {}", e))?;
+    let pubkey =
+        Key::from_base64(public_key_b64).map_err(|e| anyhow!("Invalid public key: {}", e))?;
+    let psk =
+        Key::from_base64(preshared_key_b64).map_err(|e| anyhow!("Invalid preshared key: {}", e))?;
 
     let mut peer = PeerConfigBuilder::new(&pubkey).set_preshared_key(psk);
     for ip_str in allowed_ips {
-        let net: ipnet::IpNet = ip_str.parse()
+        let net: ipnet::IpNet = ip_str
+            .parse()
             .map_err(|e| anyhow!("Invalid allowed IP {}: {}", ip_str, e))?;
         peer = peer.add_allowed_ip(net.addr(), net.prefix_len());
     }
@@ -58,8 +61,8 @@ pub fn add_peer(
 /// Remove a peer from the WireGuard interface.
 pub fn remove_peer(name: &str, public_key_b64: &str) -> anyhow::Result<()> {
     let iface = iface_name(name)?;
-    let pubkey = Key::from_base64(public_key_b64)
-        .map_err(|e| anyhow!("Invalid public key: {}", e))?;
+    let pubkey =
+        Key::from_base64(public_key_b64).map_err(|e| anyhow!("Invalid public key: {}", e))?;
     DeviceUpdate::new()
         .remove_peer_by_key(&pubkey)
         .apply(&iface, Backend::Kernel)?;
@@ -77,8 +80,11 @@ pub fn get_stats(name: &str) -> anyhow::Result<Vec<PeerStats>> {
             public_key: p.config.public_key.to_base64(),
             rx_bytes: p.stats.rx_bytes,
             tx_bytes: p.stats.tx_bytes,
-            last_handshake_secs: p.stats.last_handshake_time
-                .map(|t| t.duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_secs()),
+            last_handshake_secs: p.stats.last_handshake_time.map(|t| {
+                t.duration_since(std::time::UNIX_EPOCH)
+                    .unwrap_or_default()
+                    .as_secs()
+            }),
         })
         .collect();
     Ok(stats)
@@ -92,13 +98,13 @@ pub fn sync_peers(
     let iface = iface_name(name)?;
     let mut update = DeviceUpdate::new().replace_peers();
     for (pubkey_b64, psk_b64, allowed_ips) in peers {
-        let pubkey = Key::from_base64(pubkey_b64)
-            .map_err(|e| anyhow!("Invalid public key: {}", e))?;
-        let psk = Key::from_base64(psk_b64)
-            .map_err(|e| anyhow!("Invalid preshared key: {}", e))?;
+        let pubkey =
+            Key::from_base64(pubkey_b64).map_err(|e| anyhow!("Invalid public key: {}", e))?;
+        let psk = Key::from_base64(psk_b64).map_err(|e| anyhow!("Invalid preshared key: {}", e))?;
         let mut peer = PeerConfigBuilder::new(&pubkey).set_preshared_key(psk);
         for ip_str in allowed_ips {
-            let net: ipnet::IpNet = ip_str.parse()
+            let net: ipnet::IpNet = ip_str
+                .parse()
                 .map_err(|e| anyhow!("Invalid allowed IP {}: {}", ip_str, e))?;
             peer = peer.add_allowed_ip(net.addr(), net.prefix_len());
         }

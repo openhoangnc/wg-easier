@@ -3,15 +3,15 @@ use std::net::SocketAddr;
 use tokio::signal::unix::{signal, SignalKind};
 use tracing::info;
 
+mod api;
 mod config;
 mod db;
 mod error;
 mod models;
 mod wireguard;
-mod api;
 
-pub use config::AppConfig;
 use api::session::SessionStore;
+pub use config::AppConfig;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -25,8 +25,7 @@ async fn main() -> anyhow::Result<()> {
     // 1. Init tracing
     tracing_subscriber::fmt()
         .with_env_filter(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "info".into()),
+            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "info".into()),
         )
         .init();
 
@@ -64,13 +63,14 @@ async fn main() -> anyhow::Result<()> {
         use wireguard::interface as wgiface;
         use wireguard::peers;
 
-        let (conn, netlink_handle, _) = rtnetlink::new_connection()
-            .context("Failed to open rtnetlink connection")?;
+        let (conn, netlink_handle, _) =
+            rtnetlink::new_connection().context("Failed to open rtnetlink connection")?;
         tokio::spawn(conn);
 
         // Create interface if it doesn't exist
         if !wgiface::link_exists(&netlink_handle, &iface.name).await {
-            wgiface::create_wireguard_link(&netlink_handle, &iface.name).await
+            wgiface::create_wireguard_link(&netlink_handle, &iface.name)
+                .await
                 .context("Failed to create WireGuard interface")?;
         }
 
@@ -80,22 +80,28 @@ async fn main() -> anyhow::Result<()> {
 
         // Assign IP address + bring up + add route
         let idx = wgiface::get_link_index(&netlink_handle, &iface.name).await?;
-        let net: ipnet::IpNet = iface.ipv4_cidr.parse()
-            .context("Invalid interface CIDR")?;
-        wgiface::assign_address(&netlink_handle, idx, &net).await
+        let net: ipnet::IpNet = iface.ipv4_cidr.parse().context("Invalid interface CIDR")?;
+        wgiface::assign_address(&netlink_handle, idx, &net)
+            .await
             .unwrap_or_else(|e| tracing::warn!("assign_address: {} (may already exist)", e));
         wgiface::set_link_up(&netlink_handle, idx).await?;
-        wgiface::add_route(&netlink_handle, idx, &net).await
+        wgiface::add_route(&netlink_handle, idx, &net)
+            .await
             .unwrap_or_else(|e| tracing::warn!("add_route: {} (may already exist)", e));
 
         // Bulk sync enabled peers
         let clients = db::clients::list_enabled(&db).await?;
         let peer_tuples: Vec<(String, String, Vec<String>)> = clients
             .into_iter()
-            .map(|c| (c.public_key, c.preshared_key, vec![format!("{}/32", c.ipv4)]))
+            .map(|c| {
+                (
+                    c.public_key,
+                    c.preshared_key,
+                    vec![format!("{}/32", c.ipv4)],
+                )
+            })
             .collect();
-        peers::sync_peers(&iface.name, &peer_tuples)
-            .context("Failed to sync peers")?;
+        peers::sync_peers(&iface.name, &peer_tuples).context("Failed to sync peers")?;
 
         // 9. Setup NAT
         let outbound = std::env::var("WG_OUTBOUND_IFACE").unwrap_or_else(|_| "eth0".to_string());
@@ -112,12 +118,13 @@ async fn main() -> anyhow::Result<()> {
 
     // 11. Prometheus metrics
     let prom_builder = metrics_exporter_prometheus::PrometheusBuilder::new();
-    let prom_handle = prom_builder.install_recorder()
+    let prom_handle = prom_builder
+        .install_recorder()
         .context("Failed to install Prometheus recorder")?;
 
     // 12. Build router
-    let app = api::build_router(state, prom_handle)
-        .layer(tower_http::trace::TraceLayer::new_for_http());
+    let app =
+        api::build_router(state, prom_handle).layer(tower_http::trace::TraceLayer::new_for_http());
 
     // 13. Bind and serve
     let addr: SocketAddr = format!("0.0.0.0:{}", config.port).parse()?;
@@ -134,10 +141,11 @@ async fn main() -> anyhow::Result<()> {
         wireguard::nat::teardown_nat()
             .unwrap_or_else(|e| tracing::warn!("NAT teardown failed: {}", e));
 
-        let (conn, handle, _) = rtnetlink::new_connection()
-            .context("Failed to open rtnetlink for shutdown")?;
+        let (conn, handle, _) =
+            rtnetlink::new_connection().context("Failed to open rtnetlink for shutdown")?;
         tokio::spawn(conn);
-        wireguard::interface::delete_link(&handle, "wg0").await
+        wireguard::interface::delete_link(&handle, "wg0")
+            .await
             .unwrap_or_else(|e| tracing::warn!("Failed to delete wg0: {}", e));
     }
 

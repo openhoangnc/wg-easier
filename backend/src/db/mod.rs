@@ -1,13 +1,13 @@
+use sqlx::{migrate::MigrateDatabase, Pool, Sqlite, SqlitePool};
 use std::sync::Arc;
-use sqlx::{Pool, Sqlite, SqlitePool, migrate::MigrateDatabase};
 use tracing::info;
 
 pub type Db = Arc<Pool<Sqlite>>;
 
-pub mod users;
 pub mod clients;
 pub mod interfaces;
 pub mod settings;
+pub mod users;
 
 pub async fn init_db(db_path: &str) -> anyhow::Result<Db> {
     let url = format!("sqlite://{db_path}");

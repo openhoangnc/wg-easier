@@ -1,7 +1,7 @@
+use crate::wireguard::peers;
+use crate::{error::AppError, AppState};
 use axum::{extract::State, response::IntoResponse, Json};
 use serde::Deserialize;
-use crate::{AppState, error::AppError};
-use crate::wireguard::peers;
 
 #[derive(Deserialize)]
 pub struct UpdateInterfaceRequest {
@@ -11,7 +11,9 @@ pub struct UpdateInterfaceRequest {
 }
 
 pub async fn get_interface(State(state): State<AppState>) -> Result<impl IntoResponse, AppError> {
-    let iface = crate::db::interfaces::get(&state.db).await.map_err(AppError::Internal)?
+    let iface = crate::db::interfaces::get(&state.db)
+        .await
+        .map_err(AppError::Internal)?
         .ok_or_else(|| AppError::NotFound)?;
     // Don't expose private key
     Ok(Json(serde_json::json!({
@@ -28,14 +30,22 @@ pub async fn update_interface(
     State(state): State<AppState>,
     Json(body): Json<UpdateInterfaceRequest>,
 ) -> Result<impl IntoResponse, AppError> {
-    let mut iface = crate::db::interfaces::get(&state.db).await.map_err(AppError::Internal)?
+    let mut iface = crate::db::interfaces::get(&state.db)
+        .await
+        .map_err(AppError::Internal)?
         .ok_or(AppError::NotFound)?;
 
-    if let Some(port) = body.listen_port { iface.listen_port = port; }
-    if let Some(cidr) = body.ipv4_cidr { iface.ipv4_cidr = cidr; }
+    if let Some(port) = body.listen_port {
+        iface.listen_port = port;
+    }
+    if let Some(cidr) = body.ipv4_cidr {
+        iface.ipv4_cidr = cidr;
+    }
     iface.ipv6_cidr = body.ipv6_cidr.or(iface.ipv6_cidr);
 
-    crate::db::interfaces::upsert(&state.db, &iface).await.map_err(AppError::Internal)?;
+    crate::db::interfaces::upsert(&state.db, &iface)
+        .await
+        .map_err(AppError::Internal)?;
 
     // Re-apply to kernel
     peers::configure_interface(&iface.name, &iface.private_key, iface.listen_port as u16)
